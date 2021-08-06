@@ -11,15 +11,26 @@ function App() {
 
   // Fonctions
   const removeClickedHandler = index => {
+    
     const newTasks = [...tasks];
     newTasks.splice(index, 1);
     setTasks(newTasks);
+    axios.delete('/tasks/'+ tasks[index].id + '.json');
+
   }
 
   const doneClickedHandler = index => {
-    const newTasks = [...tasks];
-    newTasks[index].done = !tasks[index].done;
+    const newTasks = [...tasks]; // copy state
+    newTasks[index].done = !tasks[index].done; // if false then true
     setTasks(newTasks);
+    // update firebase database after modif
+    axios.put('/tasks/'+ newTasks[index].id + '.json', {params: newTasks[index]})
+      .then(rsp => {
+        console.log(rsp);
+      })
+      .catch(error => {
+        console.log(error);
+      });  
   }
 
   const submittedTaskHandler = event => {
@@ -69,7 +80,7 @@ function App() {
   //     />
   // ));
 
-  // componentDidMount
+  // componentDidMount (refresh page, add task..)
   useEffect(() => {
     inputTask.current.focus();
 
@@ -82,12 +93,13 @@ function App() {
           id: key
         })
       })
-      setTasks(getTasksFromFirebase);
+      setTasks(getTasksFromFirebase); // update state
     })
     .catch(error => {
       console.log(error);
     });
   }, []);
+  
 
   return (
     <div className={classes.App}>
